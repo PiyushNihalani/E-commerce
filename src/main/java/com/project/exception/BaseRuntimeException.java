@@ -2,11 +2,6 @@ package com.project.exception;
 
 import org.springframework.http.HttpStatus;
 
-/**
- * 
- *  Author: Kody Technolab Ltd. <br/>
- *  Date : 13-May-2024
- */
 public class BaseRuntimeException extends RuntimeException {
 
 	/**

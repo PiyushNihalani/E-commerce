@@ -27,11 +27,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- *
- * Author: Kody Technolab Ltd. <br/>
- * Date : 16-May-2024
- */
 @ControllerAdvice(basePackages = "com.project")
 @RequiredArgsConstructor
 @Slf4j
@@ -80,10 +75,6 @@ public class ErrorHandlingController {
 			status = HttpStatus.INTERNAL_SERVER_ERROR;
 			message = "Argument mis matched";
 		} 
-//		else if (exception instanceof ObjectOptimisticLockingFailureException) {
-//			status = HttpStatus.INTERNAL_SERVER_ERROR;
-//			message = "Something went wrong. Please try again";
-//		} 
 		else {
 			status = HttpStatus.INTERNAL_SERVER_ERROR;
 			message = messageByLocaleService.getMessage("common.error", null);
