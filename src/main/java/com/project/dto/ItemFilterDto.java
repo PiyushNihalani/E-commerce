@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ItemFilterDto {
 
+	private Boolean active;
+	
 	private Double lessThanPrice;
 	
 	private Double moreThanPrice;

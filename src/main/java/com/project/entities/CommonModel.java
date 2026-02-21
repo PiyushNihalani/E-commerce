@@ -32,11 +32,11 @@ public class CommonModel {
 	@LastModifiedDate
 	private LocalDateTime updatedAt;
 	
-//	@CreatedBy
-//	@Column(name = "created_by",nullable = false, updatable = false)
-//	private Long createdBy;
-//	
-//	@Column(name = "updated_by",nullable = false)
-//	private Long updatedBy;
+	@CreatedBy
+	@Column(name = "created_by", updatable = false)
+	private Long createdBy;
+	
+	@Column(name = "updated_by")
+	private Long updatedBy;
 	
 }

@@ -21,8 +21,8 @@ public class ItemMapper {
 	
 	public Item requestToEntity(ItemRequestDto itemRequestDto) {
 		Item item = new Item();
-		item.setCategory(convertToCategory(itemRequestDto.getCategory()));
 		BeanUtils.copyProperties(itemRequestDto, item);
+		item.setCategory(convertToCategory(itemRequestDto.getCategory()));
 		return item;
 	}
 	

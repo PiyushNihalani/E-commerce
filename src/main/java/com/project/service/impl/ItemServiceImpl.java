@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import com.project.dto.ItemFilterDto;
 import com.project.dto.ItemRequestDto;
 import com.project.dto.ItemResponseDto;
@@ -31,9 +32,11 @@ import com.project.specification.ItemSpecification;
 import com.project.util.CommonUtility;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ItemServiceImpl implements ItemService {
 
 	private final ItemRepository itemRepository;
@@ -44,12 +47,15 @@ public class ItemServiceImpl implements ItemService {
 	@Override
 	@Transactional
 	public ItemResponseDto addItem(ItemRequestDto itemRequestDto) throws ValidationException {
+		log.info("inside ItemServiceImpl::addItem");
 		CommonUtility.trimAllStringFields(itemRequestDto);
-		if (itemRequestDto.getDiscountedPrice() > itemRequestDto.getPrice()) {
+		if (ObjectUtils.isNotEmpty(itemRequestDto.getDiscountedPrice())
+				&& (itemRequestDto.getDiscountedPrice() > itemRequestDto.getPrice())) {
 			throw new ValidationException(message.getMessage("item.discounted.price.greater", null));
 		}
 		Item item = itemMapper.requestToEntity(itemRequestDto);
 		item.setUuid(CommonUtility.generateUuid(itemRepository));
+		item.setActive(Boolean.TRUE);
 		item = setPrices(item);
 		item.setImageUrls(uploadImages(itemRequestDto.getImageFiles(),
 				"items/" + item.getCategory().toString().toLowerCase(), item.getUuid()));
@@ -59,18 +65,24 @@ public class ItemServiceImpl implements ItemService {
 
 	@Override
 	public ItemResponseDto getItemByUuid(String uuid) throws NotFoundException {
+		log.info("inside ItemServiceImpl::getItemByUuid");
 		return itemMapper.entityToResponse(itemRepository.findByUuid(uuid).orElseThrow(
 				() -> new NotFoundException(message.getMessage("item.uuid.not.found", new Object[] { uuid }))));
 	}
 
 	@Override
 	@Transactional
-	public ItemResponseDto updateItem(String uuid, ItemRequestDto itemRequestDto)
-			throws NotFoundException, ValidationException {
+	public ItemResponseDto updateItem(ItemRequestDto itemRequestDto) throws NotFoundException, ValidationException {
+		log.info("inside ItemServiceImpl::updateItem");
+		if (StringUtils.isBlank(itemRequestDto.getUuid())) {
+			throw new ValidationException("item.uuid.invalid");
+		}
+		String uuid = itemRequestDto.getUuid();
 		Item existingItem = itemRepository.findByUuid(uuid).orElseThrow(
 				() -> new NotFoundException(message.getMessage("item.uuid.not.found", new Object[] { uuid })));
 		CommonUtility.trimAllStringFields(itemRequestDto);
-		if (itemRequestDto.getDiscountedPrice() > itemRequestDto.getPrice()) {
+		if (ObjectUtils.isNotEmpty(itemRequestDto.getDiscountedPrice())
+				&& (itemRequestDto.getDiscountedPrice() > itemRequestDto.getPrice())) {
 			throw new ValidationException(message.getMessage("item.discounted.price.greater", null));
 		}
 		Item newItem = itemMapper.requestToEntity(itemRequestDto, existingItem);
@@ -85,6 +97,7 @@ public class ItemServiceImpl implements ItemService {
 	@Override
 	@Transactional
 	public void changeStatus(String uuid, Boolean active) throws NotFoundException, ValidationException {
+		log.info("inside ItemServiceImpl::changeStatus");
 		Item item = itemRepository.findByUuid(uuid).orElseThrow(
 				() -> new NotFoundException(message.getMessage("item.uuid.not.found", new Object[] { uuid })));
 
@@ -100,6 +113,7 @@ public class ItemServiceImpl implements ItemService {
 
 	@Override
 	public Page<Item> allItems(Integer pageNumber, Integer pageSize, ItemFilterDto itemFilterDto) {
+		log.info("inside ItemServiceImpl::allItems");
 		Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("createdAt").descending());
 		Specification<Item> spec = ItemSpecification.filterItems(itemFilterDto);
 		return itemRepository.findAll(spec, pageable);
@@ -113,6 +127,7 @@ public class ItemServiceImpl implements ItemService {
 	 * @return
 	 */
 	private Item setPrices(Item item) {
+		log.info("inside ItemServiceImpl::setPrices");
 		if (item.getDiscountedPrice() != null || item.getDiscountPercent() != null) {
 			Double finalPrice;
 			if (item.getDiscountedPrice() == null && item.getDiscountPercent() != null) {
@@ -137,6 +152,7 @@ public class ItemServiceImpl implements ItemService {
 	 * @return
 	 */
 	private Double calculateFinalPrice(Double price, Double discountPercentage) {
+		log.info("inside ItemServiceImpl::calculateFinalPrice");
 		if (price == null || discountPercentage == null) {
 			return price;
 		}
@@ -156,12 +172,13 @@ public class ItemServiceImpl implements ItemService {
 	 * @return
 	 */
 	private Double calculateDiscountPercentage(Double price, Double discountPrice) {
+		log.info("inside ItemServiceImpl::calculateDiscountPercentage");
 		if (price == null || discountPrice == null) {
 			return 0.0;
 		}
 
 		if (discountPrice > price) {
-			throw new IllegalArgumentException(message.getMessage("item.discount.price.invalid", null));
+			throw new IllegalArgumentException(message.getMessage("item.discount.price.greater", null));
 		}
 
 		double discountAmount = price - discountPrice;
@@ -181,7 +198,7 @@ public class ItemServiceImpl implements ItemService {
 	 */
 	@SuppressWarnings("unchecked")
 	private List<String> uploadImages(List<MultipartFile> files, String folderPath, String uuid) {
-
+		log.info("inside ItemServiceImpl::uploadImages");
 		List<String> imageUrls = new ArrayList<>();
 
 		List<MultipartFile> validFiles = files.stream().filter(Objects::nonNull).filter(file -> !file.isEmpty())
@@ -196,7 +213,8 @@ public class ItemServiceImpl implements ItemService {
 			String fileName = (idx++) + "_" + uuid + "_" + System.currentTimeMillis();
 			try {
 				Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(),
-						ObjectUtils.asMap("folder", folderPath, "public_id", fileName, "resource_type", "image"));
+						com.cloudinary.utils.ObjectUtils.asMap("folder", folderPath, "public_id", fileName,
+								"resource_type", "image"));
 
 				String secureUrl = uploadResult.get("secure_url").toString();
 				imageUrls.add(secureUrl);
@@ -215,19 +233,19 @@ public class ItemServiceImpl implements ItemService {
 	 * @param publicIds
 	 */
 	public void deleteImages(List<String> imageUrls) {
-
+		log.info("inside ItemServiceImpl::deleteImages");
 		/**
-		 * The url always contains "/upload/" and then - "version/public_id".
-		 * We need to fetch that public_id without extension to delete it.
+		 * The url always contains "/upload/" and then - "version/public_id". We need to
+		 * fetch that public_id without extension to delete it.
 		 */
 		List<String> publicIds = imageUrls.stream().map(url -> {
 			String afterUpload = url.substring(url.indexOf("/upload/") + 8);
-			return afterUpload.substring(afterUpload.indexOf("/")+1, afterUpload.lastIndexOf("."));
+			return afterUpload.substring(afterUpload.indexOf("/") + 1, afterUpload.lastIndexOf("."));
 		}).toList();
 
 		for (String publicId : publicIds) {
 			try {
-				cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+				cloudinary.uploader().destroy(publicId, com.cloudinary.utils.ObjectUtils.emptyMap());
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to delete image: " + publicId);
 			}

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.junit.platform.commons.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.project.dto.ItemFilterDto;
@@ -19,7 +19,9 @@ public class ItemSpecification {
 		return (root, query, cb) -> {
 			List<Predicate> predicates = new ArrayList<>();
 
-			predicates.add(cb.equal(root.get("active"), Boolean.TRUE));
+			if (ObjectUtils.isNotEmpty(itemFilterDto.getActive())) {
+				predicates.add(cb.equal(root.get("active"), itemFilterDto.getActive()));
+			}
 
 			if (ObjectUtils.isNotEmpty(itemFilterDto.getLessThanPrice())) {
 				predicates.add(cb.lessThanOrEqualTo(root.get("finalPrice"), itemFilterDto.getLessThanPrice()));
@@ -39,15 +41,15 @@ public class ItemSpecification {
 			}
 
 			if (StringUtils.isNotBlank(itemFilterDto.getBrand())) {
-				predicates.add(cb.like(cb.lower(root.get("brand")), "%" + itemFilterDto.getBrand() + "%"));
+				predicates.add(cb.like(cb.lower(root.get("brand")), "%" + itemFilterDto.getBrand().toLowerCase() + "%"));
 			}
 
 			if (StringUtils.isNotBlank(itemFilterDto.getSize())) {
-				predicates.add(cb.like(cb.lower(root.get("size")), "%" + itemFilterDto.getSize() + "%"));
+				predicates.add(cb.like(cb.lower(root.get("size")), "%" + itemFilterDto.getSize().toLowerCase() + "%"));
 			}
 
 			if (StringUtils.isNotBlank(itemFilterDto.getSubCategory())) {
-				predicates.add(cb.like(cb.lower(root.get("subCategory")), "%" + itemFilterDto.getCategory() + "%"));
+				predicates.add(cb.like(cb.lower(root.get("subCategory")), "%" + itemFilterDto.getSubCategory().toLowerCase() + "%"));
 			}
 
 			return cb.and(predicates.toArray(new Predicate[0]));

@@ -35,7 +35,7 @@ public interface ItemService {
 	 * @throws NotFoundException 
 	 * @throws ValidationException 
 	 */
-	public ItemResponseDto updateItem(String uuid, ItemRequestDto itemRequestDto) throws NotFoundException, ValidationException;
+	public ItemResponseDto updateItem(ItemRequestDto itemRequestDto) throws NotFoundException, ValidationException;
 
 	/**
 	 * 

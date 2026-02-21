@@ -18,6 +18,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ItemRequestDto {
 
+	private String uuid;
+	
 	@NotBlank(message = "{item.name.blank}")
 	private String name;
 	

@@ -13,7 +13,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ItemResponseDto {
 
+	private String uuid;
+	
 	private String name;
+	
+	private Boolean active;
 	
 	private Double price;
 	

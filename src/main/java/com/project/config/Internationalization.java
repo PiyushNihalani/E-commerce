@@ -16,7 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 @Configuration
 public class Internationalization extends AcceptHeaderLocaleResolver implements WebMvcConfigurer {
 
-	List<Locale> locales = Arrays.asList(Locale.of("en"), Locale.of("ar"));
+	List<Locale> locales = Arrays.asList(Locale.of("en"), Locale.of("hi"));
 
 	@Override
 	public Locale resolveLocale(final HttpServletRequest request) {
