@@ -45,7 +45,7 @@ public class ItemController {
 	 * @param itemFilterDto
 	 * @return
 	 */
-	@GetMapping
+	@PostMapping("findAll")
 	public ResponseEntity<?> getAll(@RequestParam Integer pageNumber, @RequestParam Integer pageSize,
 			@RequestBody ItemFilterDto itemFilterDto) {
 		log.info("inside ItemController::getAll");
