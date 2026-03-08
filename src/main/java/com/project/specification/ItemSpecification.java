@@ -45,7 +45,7 @@ public class ItemSpecification {
 			}
 
 			if (StringUtils.isNotBlank(itemFilterDto.getSize())) {
-				predicates.add(cb.like(cb.lower(root.get("size")), "%" + itemFilterDto.getSize().toLowerCase() + "%"));
+				predicates.add(cb.like(cb.lower(root.get("size")), itemFilterDto.getSize().toLowerCase()));
 			}
 
 			if (StringUtils.isNotBlank(itemFilterDto.getSubCategory())) {
