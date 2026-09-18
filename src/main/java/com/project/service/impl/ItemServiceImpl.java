@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 @Slf4j
 public class ItemServiceImpl implements ItemService {
 
@@ -45,7 +46,6 @@ public class ItemServiceImpl implements ItemService {
 	private final Cloudinary cloudinary;
 
 	@Override
-	@Transactional
 	public ItemResponseDto addItem(ItemRequestDto itemRequestDto) throws ValidationException {
 		log.info("inside ItemServiceImpl::addItem");
 		CommonUtility.trimAllStringFields(itemRequestDto);
@@ -71,7 +71,6 @@ public class ItemServiceImpl implements ItemService {
 	}
 
 	@Override
-	@Transactional
 	public ItemResponseDto updateItem(ItemRequestDto itemRequestDto) throws NotFoundException, ValidationException {
 		log.info("inside ItemServiceImpl::updateItem");
 		if (StringUtils.isBlank(itemRequestDto.getUuid())) {
@@ -95,7 +94,6 @@ public class ItemServiceImpl implements ItemService {
 	}
 
 	@Override
-	@Transactional
 	public void changeStatus(String uuid, Boolean active) throws NotFoundException, ValidationException {
 		log.info("inside ItemServiceImpl::changeStatus");
 		Item item = itemRepository.findByUuid(uuid).orElseThrow(
